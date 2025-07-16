@@ -1,0 +1,8 @@
+{
+  "name": "soru-cozucu-simplified",
+  "version": "1.0.0",
+  "description": "Sadece Netlify sunucusuz fonksiyonu için bağımlılıkları içerir.",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
