@@ -1,0 +1,18 @@
+# Kod Mimarı Notu: Bu dosya, gereksiz veya hassas dosyaların
+# Git versiyon kontrolüne dahil edilmesini engeller.
+
+# Bağımlılıklar
+# Bu klasör, 'npm install' komutu ile Netlify fonksiyonları için
+# otomatik olarak oluşturulur.
+/node_modules
+
+# Ortam değişkenleri dosyaları (GÜVENLİK)
+# Hassas bilgileri içerebilirler. Asla GitHub'a gönderilmemelidir.
+.env
+.env.*
+
+# İşletim sistemi ve editör özel dosyaları
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
