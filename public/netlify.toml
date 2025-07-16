@@ -1,0 +1,18 @@
+# Kod Mimarı Notu: Bu dosya, Netlify platformuna özel yapılandırma
+# talimatlarını içerir. Bu basitleştirilmiş yapıda, bir "build" adımı
+# yoktur, bu yüzden doğrudan 'public' klasörünü yayınlıyoruz.
+
+[build]
+  # Yayınlanacak klasör: Ana index.html dosyamızın bulunduğu yer.
+  publish = "public/"
+  
+  # Sunucusuz fonksiyonların bulunduğu klasör.
+  functions = "netlify/functions/"
+
+# Single Page Application (SPA) benzeri yönlendirme kuralı.
+# Bu kural, tüm isteklerin ana index.html dosyasına yönlendirilmesini
+# sağlar, bu da React'in sayfa içinde gezinmeyi yönetmesine olanak tanır.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
