@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soru Çözücü - Berkant Hoca</title>
+    
+    <!-- Temel Kütüphaneler (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Matematiksel Gösterim (KaTeX) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    
+    <!-- Yazı Tipi -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://i.imgur.com/GtXn6lU.jpeg" />
+
+    <!-- Stil Kodları -->
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0;
+            background-color: #0f172a; /* bg-slate-900 */
+        }
+        .animated-gradient {
+            background: linear-gradient(-45deg, #1e3a8a, #4c1d95, #3b0764, #2563eb);
+            background-size: 400% 400%;
+            animation: gradient-move 15s ease infinite;
+        }
+        @keyframes gradient-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .bubbles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        .bubble {
+            position: absolute;
+            bottom: -150px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: bubble-rise 25s infinite ease-in;
+            opacity: 0;
+        }
+        .bubble:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-duration: 18s; }
+        .bubble:nth-child(2) { width: 20px; height: 20px; left: 20%; animation-duration: 12s; animation-delay: 1s; }
+        .bubble:nth-child(3) { width: 50px; height: 50px; left: 25%; animation-duration: 22s; }
+        .bubble:nth-child(4) { width: 80px; height: 80px; left: 35%; animation-duration: 25s; animation-delay: 3s; }
+        .bubble:nth-child(5) { width: 35px; height: 35px; left: 50%; animation-duration: 15s; }
+        .bubble:nth-child(6) { width: 45px; height: 45px; left: 65%; animation-duration: 20s; animation-delay: 1s; }
+        .bubble:nth-child(7) { width: 25px; height: 25px; left: 75%; animation-duration: 14s; animation-delay: 4s; }
+        .bubble:nth-child(8) { width: 65px; height: 65px; left: 90%; animation-duration: 24s; animation-delay: 2s; }
+        @keyframes bubble-rise {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-120vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+        .rainbow-active { position: relative; z-index: 1; background: #1a202c; color: white; border: 2px solid transparent; }
+        .rainbow-active::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); background-size: 400%; border-radius: 0.5rem; z-index: -1; animation: rainbow-move 3s linear infinite; }
+        @keyframes rainbow-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #818cf8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .halkali-title { animation: text-color-change 6s linear infinite; }
+        @keyframes text-color-change { 0% {color: #a78bfa;} 25% {color: #f472b6;} 50% {color: #34d399;} 75% {color: #fb923c;} 100% {color: #a78bfa;} }
+        
+        .feedback-box { position: relative; z-index: 1; border-radius: 12px; background: linear-gradient(135deg, #1e1b4b, #4c1d95); color: white; padding: 20px; overflow: hidden; }
+        .feedback-box::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -2; margin: -2px; border-radius: inherit; background: linear-gradient(90deg, #818cf8, #c084fc, #f0abfc, #c084fc, #818cf8); background-size: 400% 400%; animation: animated-border 4s ease-in-out infinite; }
+        @keyframes animated-border { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .katex { color: #d1d5db; }
+        .inline-math { display: inline-block; background-color: rgba(71, 85, 105, 0.5); padding: 2px 8px; border-radius: 6px; margin: 0 4px; border: 1px solid #475569; vertical-align: baseline; font-weight: normal !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="module">
+        // Firebase v9+ SDK'ları modül olarak içe aktarılır.
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+        // Firebase Yapılandırması
+        const firebaseConfig = {  
+            apiKey: "AIzaSyCl6OUQfR8BvI3S2EJ0pVA-I1-r-JX0aBU",  
+            authDomain: "paylassorucozucu.firebaseapp.com",  
+            projectId: "paylassorucozucu",  
+            storageBucket: "paylassorucozucu.appspot.com",  
+            messagingSenderId: "447054434464",  
+            appId: "1:447054434464:web:635924b4d7f37c5f4b39c5"  
+        };
+        
+        // Firebase servislerini global bir nesneye ata
+        window.firebaseServices = {};
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            window.firebaseServices = { auth, db, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc };
+        } catch (error) {
+            console.error("Firebase başlatılamadı!", error);
+        }
+    </script>
+    
+    <script type="text/babel">
+        const { useState, useRef, useEffect, useMemo } = React;
+        const { createRoot } = ReactDOM;
+        
+        const { auth, db, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, doc, setDoc, getDoc } = window.firebaseServices;
+
+        // ===================================================================================
+        // UI YARDIMCI COMPONENT'LERİ
+        // ===================================================================================
+        const LoadingIndicator = ({ message }) => (<div className="mt-4 flex flex-col items-center justify-center"><div className="loader"></div><p className="text-slate-400 mt-2 text-center">{message}</p></div>);
+        const FullScreenLoader = () => (<div className="fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center z-50"><div className="loader"></div></div>);
+        const AlertDisplay = ({ message, type = 'error' }) => { if (!message) return null; const c = { error: "bg-pink-500/20 border-pink-500/30 text-pink-300", success: "bg-green-500/20 border-green-500/30 text-green-300" }; return <div className={`px-4 py-3 rounded-lg relative mb-4 text-center text-sm ${c[type]}`} role="alert">{message}</div>; };
+        const Modal = ({ title, children, onClose }) => (<div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4"><div className="bg-slate-800/70 border border-slate-700 rounded-lg shadow-2xl max-w-sm w-full"><div className="p-5 border-b border-slate-700"><h3 className="text-xl font-bold text-slate-100">{title}</h3></div><div className="p-5 text-slate-300">{children}</div><div className="p-4 bg-slate-900/50 border-t border-slate-700 text-right"><button onClick={onClose} className="px-4 py-2 bg-violet-600 text-white font-semibold rounded-lg hover:bg-violet-700 transition-colors">Anladım</button></div></div></div>);
+        const KatexRenderer = ({ content, isBlock }) => { const r = useRef(null); useEffect(() => { if (r.current && content) { try { katex.render(content, r.current, { throwOnError: false, displayMode: isBlock }); } catch (e) { r.current.textContent = content; }}}, [content, isBlock]); return isBlock ? <div ref={r}></div> : <span ref={r} className="inline-math"></span>; };
+        const UniversalMathRenderer = ({ text, baseTextColor = 'text-slate-300' }) => { const p = useMemo(() => { if (!text) return null; const r = (l) => l.split(/(\*\*.*?\*\*|\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g).filter(Boolean).map((pt, i) => { if (pt.startsWith('**')) return <strong key={i}>{pt.slice(2,-2)}</strong>; if (pt.startsWith('$$')) return <KatexRenderer key={i} content={pt.slice(2,-2)} isBlock={true}/>; if (pt.startsWith('$')) return <KatexRenderer key={i} content={pt.slice(1,-1)} isBlock={false}/>; return <span key={i}>{pt}</span>; }); const s = text.split(/(###.*?###)/g); return s.map((sec, i) => { if (sec.startsWith('###')) return <h4 key={i} className="text-md font-bold text-violet-400 mt-4 mb-2 pb-1 border-b-2 border-violet-800/50">{r(sec.slice(3,-3))}</h4>; const st = sec.replace(/\\n/g, '\n').trim(); if (!st) return null; return st.split('\n').map((l, li) => { const m = l.match(/^(🎯|🔢|➡️|✅|💡|🔍|📝|📌|✔️|➕|➖|➗|✖️|🟰)\s*/); return (<div key={`${i}-${li}`} className="flex items-start mb-3">{m && <span className="text-xl mr-3 mt-1">{m[0]}</span>}<div className={`flex-1 ${baseTextColor} leading-relaxed`}>{r(m ? l.substring(m[0].length) : l)}</div></div>); }); }); }, [text, baseTextColor]); return <div>{p}</div>; };
+        
+        // ===================================================================================
+        // ANA UYGULAMA MANTIĞI VE COMPONENT'LERİ
+        // ===================================================================================
+        const useSoruCozucu = () => {
+            const [image, setImage] = useState(null); const [imageBase64, setImageBase64] = useState(''); const [selectedSubject, setSelectedSubject] = useState(null); const [solution, setSolution] = useState(null); const [status, setStatus] = useState('idle'); const [loadingMessage, setLoadingMessage] = useState(''); const [error, setError] = useState(''); const fileInputRef = useRef(null);
+            const [showAskTeacher, setShowAskTeacher] = useState(false); const [teacherQuestion, setTeacherQuestion] = useState(''); const [chatHistory, setChatHistory] = useState([]); const [isChatLoading, setIsChatLoading] = useState(false);
+            const [toastMessage, setToastMessage] = useState(''); const [showFeedbackButtons, setShowFeedbackButtons] = useState(true);
+            const handleFileChange = (e) => { const f = e.target.files[0]; if (f) { reset(); setImage(URL.createObjectURL(f)); const r = new FileReader(); r.onloadend = () => setImageBase64(r.result.split(',')[1]); r.onerror = () => setError('Dosya okunurken bir hata oluştu.'); r.readAsDataURL(f); } };
+            const triggerFileSelect = () => fileInputRef.current?.click();
+            const startSolutionProcess = async (userAnswer, correctionText = null) => {
+                if (!imageBase64 || !selectedSubject) { setError('Lütfen önce bir resim yükleyip ders seçin.'); return; }
+                setStatus('loading'); setLoadingMessage('Soru analiz ediliyor...'); setError(''); setSolution(null); setShowFeedbackButtons(true);
+                try {
+                    const response = await fetch('/.netlify/functions/gemini-proxy', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64, subject: selectedSubject, userAnswer, correctionText }),
+                    });
+                    if (!response.ok) { const errData = await response.json(); throw new Error(errData.error || `Sunucu Hatası (${response.status})`); }
+                    const result = await response.json();
+                    setSolution(result.solution);
+                    setStatus('success');
+                } catch (err) { setError(`Bir hata oluştu: ${err.message}`); setStatus('error'); } 
+                finally { setLoadingMessage(''); }
+            };
+            const handleAskTeacher = async () => {
+                if (!teacherQuestion.trim()) return;
+                const newHistory = [...chatHistory, { role: 'user', content: teacherQuestion }];
+                setChatHistory(newHistory);
+                const currentQ = teacherQuestion;
+                setTeacherQuestion(''); setIsChatLoading(true);
+                try {
+                    const response = await fetch('/.netlify/functions/gemini-proxy', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64, subject: selectedSubject, solution, chatHistory: newHistory, teacherQuestion: currentQ }),
+                    });
+                    if (!response.ok) { const errData = await response.json(); throw new Error(errData.error || `Sunucu Hatası (${response.status})`); }
+                    const result = await response.json();
+                    setChatHistory(prev => [...prev, { role: 'model', content: result.chatResponse }]);
+                } catch (err) { setChatHistory(prev => [...prev, { role: 'model', content: `Üzgünüm, bir hata oluştu: ${err.message}` }]); } 
+                finally { setIsChatLoading(false); }
+            };
+            const reset = () => { setImage(null); setImageBase64(''); setSelectedSubject(null); setSolution(null); setStatus('idle'); setError(''); setShowAskTeacher(false); setChatHistory([]); setTeacherQuestion(''); setShowFeedbackButtons(true); setToastMessage(''); if (fileInputRef.current) fileInputRef.current.value = ""; };
+            const handleLike = () => { setToastMessage("Değerlendirmen için teşekkürler! ✨"); setShowFeedbackButtons(false); };
+            return { image, selectedSubject, solution, status, loadingMessage, error, fileInputRef, handleFileChange, triggerFileSelect, setSelectedSubject, startSolutionProcess, reset, showAskTeacher, setShowAskTeacher, teacherQuestion, setTeacherQuestion, chatHistory, isChatLoading, handleAskTeacher, toastMessage, showFeedbackButtons, handleLike };
+        };
+
+        const SolutionDisplay = ({ solution, subject }) => {
+            if (!solution) return null;
+            const { simplified_question, solution_steps, final_answer, recommendations } = solution;
+            return (<div className="space-y-6 mt-6 pt-6 border-t border-slate-700">
+                <div className="text-center"><h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{subject} Sorusu Çözümü</h2></div>
+                {simplified_question && <div className="bg-slate-700/50 p-5 rounded-lg border-l-4 border-amber-400"><h3 className="text-lg font-bold text-amber-300 mb-3">🤔 Soruyu Basitleştirelim!</h3><UniversalMathRenderer text={simplified_question} /></div>}
+                {solution_steps && <div className="bg-slate-700/50 p-5 rounded-lg border-l-4 border-sky-400"><h3 className="text-lg font-bold text-sky-300 mb-3">🚀 Çözüm Adımları:</h3><UniversalMathRenderer text={solution_steps} /></div>}
+                {final_answer && <div className="flex justify-center items-center gap-3 p-4 bg-green-500/20 border border-green-500/30 rounded-lg"><h3 className="text-lg font-bold text-green-300">🎉 Nihai Cevap:</h3><div className="text-lg text-green-200"><KatexRenderer content={final_answer.replace(/[\$\*]/g, '')} isBlock={false} /></div></div>}
+                {recommendations && <div className="bg-slate-700/50 p-5 rounded-lg border-l-4 border-teal-400"><h3 className="text-lg font-bold text-teal-300 mb-3">📚 Berkant Hoca'dan Tavsiyeler!</h3><UniversalMathRenderer text={recommendations} /></div>}
+            </div>);
+        };
+
+        const SoruCozucuPage = ({ onLogout }) => {
+            const { image, selectedSubject, solution, status, loadingMessage, error, fileInputRef, handleFileChange, triggerFileSelect, setSelectedSubject, startSolutionProcess, reset, showAskTeacher, setShowAskTeacher, teacherQuestion, setTeacherQuestion, chatHistory, isChatLoading, handleAskTeacher, toastMessage, showFeedbackButtons, handleLike } = useSoruCozucu();
+            const subjects = ['Matematik', 'Fizik', 'Kimya', 'Biyoloji', 'Tarih', 'Coğrafya', 'Edebiyat', 'Türkçe'];
+            const [showCorrectionPrompt, setShowCorrectionPrompt] = useState(false); const [correctionText, setCorrectionText] = useState('');
+            const handleReSolve = () => { setShowCorrectionPrompt(false); startSolutionProcess(null, correctionText); setCorrectionText(''); };
+            return (<div className="w-full max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 text-slate-200">
+                <header className="text-center mb-6 relative">
+                    <button onClick={onLogout} className="absolute top-0 right-0 -mt-2 -mr-2 px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-full hover:bg-red-600 transition-colors shadow-lg">Çıkış Yap</button>
+                    <div className="flex justify-center mb-4"><div className="w-48 p-2 bg-white/10 rounded-lg shadow-lg"><img src="https://i.imgur.com/GtXn6lU.jpeg" alt="Soru Çözücü Logosu" className="rounded-md" onError={(e) => e.target.src='https://placehold.co/192x108/1e293b/ffffff?text=Logo'} /></div></div>
+                    <p className="halkali-title text-lg font-semibold mb-2">Her Soru, Yeni Bir Keşif</p>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400">Soru Çözücü</h1>
+                    <p className="text-base font-semibold bg-gradient-to-r from-sky-400 to-violet-400 bg-clip-text text-transparent mt-2">Berkant Hoca</p>
+                </header>
+                <AlertDisplay message={error} type="error" />
+                <div className="flex flex-col gap-6">
+                    <div className="w-full flex flex-col items-center justify-center bg-slate-900/50 p-6 rounded-lg border-2 border-dashed border-slate-600">
+                        {image ? (<div className="w-full text-center"><img src={image} alt="Yüklenen Soru" className="max-w-full max-h-60 mx-auto rounded-lg shadow-md" /><button onClick={reset} className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700">Yeni Soru</button></div>) : (<div className="text-center py-8 cursor-pointer w-full" onClick={triggerFileSelect}><svg className="mx-auto h-12 w-12 text-slate-500" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg><p className="mt-2 text-sm font-medium text-slate-400">1. Adım: Fotoğraf Yükle</p></div>)}
+                        <input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
+                    </div>
+                    {image && !selectedSubject && status === 'idle' && (<div className="pt-4 border-t border-slate-700"><h2 className="text-lg font-semibold text-center text-slate-300 mb-3">2. Adım: Dersi Seç</h2><div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{subjects.map(s => (<button key={s} onClick={() => setSelectedSubject(s)} className={`py-2 px-3 rounded-lg font-semibold transition-all duration-200 text-sm sm:text-base ${selectedSubject === s ? 'rainbow-active bg-slate-900' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>{s}</button>))}</div></div>)}
+                    {selectedSubject && status === 'idle' && (<div className="pt-4 border-t border-slate-700 text-center"><h2 className="text-lg font-semibold text-slate-300 mb-4">3. Adım: Çözümü Başlat</h2><p className="text-sm text-slate-400 mb-4">Seçilen Ders: <span className="font-bold text-violet-400">{selectedSubject}</span></p><div className="flex justify-center items-center gap-3 flex-wrap">{['A','B','C','D','E'].map((o, i) => (<button key={o} onClick={() => startSolutionProcess(o)} className={`w-12 h-12 flex items-center justify-center text-white font-bold text-lg rounded-full shadow-lg transition transform hover:scale-110 ${['bg-sky-500','bg-emerald-500','bg-amber-500','bg-rose-500','bg-violet-500'][i]}`}>{o}</button>))}</div><div className="mt-4"><button onClick={() => startSolutionProcess(null)} className="w-full sm:w-auto px-6 py-2 border-2 border-slate-500 text-slate-300 font-semibold rounded-full hover:bg-slate-700 hover:border-slate-400 transition">Cevabı Bilmiyorum / Şık Yok</button></div></div>)}
+                    {status === 'loading' && <LoadingIndicator message={loadingMessage} />}
+                    {status === 'success' && solution && (<>
+                        <SolutionDisplay solution={solution} subject={selectedSubject} />
+                        <div className="text-center pt-4"><button onClick={() => setShowAskTeacher(!showAskTeacher)} className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition">👩‍🏫 Öğretmene Sor</button></div>
+                        {showAskTeacher && (<div className="mt-6 bg-slate-900/50 p-5 rounded-xl border border-slate-700"><h3 className="text-lg font-bold text-slate-200 mb-4 text-center">Aklına Takılan Bir Yer Mi Var?</h3><div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2">{chatHistory.map((c, i) => (<div key={i} className={`flex ${c.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${c.role === 'user' ? 'bg-violet-600 text-white' : 'bg-slate-700 text-slate-200'}`}><UniversalMathRenderer text={c.content} baseTextColor={c.role === 'user' ? 'text-white' : 'text-slate-200'} /></div></div>))}{isChatLoading && <div className="flex justify-start"><div className="p-3 rounded-2xl bg-slate-700"><span className="animate-pulse text-slate-400">...</span></div></div>}</div><div className="flex items-center gap-2"><textarea value={teacherQuestion} onChange={(e) => setTeacherQuestion(e.target.value)} placeholder="Merak ettiklerini yaz..." className="w-full p-2 border border-slate-600 bg-slate-800 rounded-lg focus:ring-2 focus:ring-violet-500 focus:outline-none resize-none" rows="2" onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAskTeacher(); }}} /><button onClick={handleAskTeacher} disabled={isChatLoading || !teacherQuestion.trim()} className="bg-violet-600 text-white p-2 rounded-full hover:bg-violet-700 disabled:bg-slate-500 transition"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></button></div></div>)}
+                        {showFeedbackButtons ? (<div className="mt-6 p-4 bg-slate-700/50 border border-slate-600 rounded-lg text-center"><h3 className="font-semibold text-slate-200 mb-3">Çözüm Faydalı Oldu mu?</h3><div className="flex justify-center gap-4"><button onClick={handleLike} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">👍 Beğendim</button><button onClick={() => setShowCorrectionPrompt(true)} className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">👎 Hatalı/Eksik</button></div></div>) : (toastMessage && (<AlertDisplay message={toastMessage} type="success" />))}
+                    </>)}
+                    {showCorrectionPrompt && (<div className="mt-6 p-5 text-center feedback-box"><h3 className="font-semibold text-indigo-100 mb-2 text-lg">Çözümü Geliştirmeme Yardım Et</h3><p className="text-sm text-indigo-200 mb-4">Lütfen gözden kaçırdığım noktayı yaz. Geri bildiriminle soruyu yeniden çözeceğim.</p><textarea className="w-full p-2 border bg-slate-200 text-gray-900 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none" rows="3" placeholder="Örn: Üçgenin ikizkenar olduğunu belirtmemişsin..." value={correctionText} onChange={(e) => setCorrectionText(e.target.value)}></textarea><div className="flex justify-center gap-4 mt-4"><button onClick={handleReSolve} disabled={!correctionText || status === 'loading'} className="font-bold text-white px-4 py-2 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 bg-gradient-to-r from-green-400 to-blue-500">Gönder ve Yeniden Çöz</button><button onClick={() => setShowCorrectionPrompt(false)} className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition">Vazgeç</button></div></div>)}
+                </div>
+            </div>);
+        };
+
+        const AuthPage = () => {
+            const [isLoginView, setIsLoginView] = useState(true); const [notification, setNotification] = useState({ message: "", type: "error" }); const [loading, setLoading] = useState(false); const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+            const getFriendlyError = (e) => { switch (e.code) { case 'auth/user-not-found': case 'auth/wrong-password': case 'auth/invalid-credential': return 'E-posta veya şifre hatalı.'; case 'auth/invalid-email': return 'Lütfen geçerli bir e-posta girin.'; case 'auth/email-already-in-use': return 'Bu e-posta zaten kullanılıyor.'; case 'auth/weak-password': return 'Şifre en az 6 karakterli olmalı.'; default: return 'Bir hata oluştu.'; }};
+            const handleLogin = async (email, password) => { setLoading(true); setNotification({ message: "", type: "error" }); try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { setNotification({ message: getFriendlyError(e), type: 'error' }); setLoading(false); }};
+            const handleSignup = async (email, password, fullName, grade) => { setLoading(true); setNotification({ message: "", type: "error" }); try { const cred = await createUserWithEmailAndPassword(auth, email, password); await setDoc(doc(db, "users", cred.user.uid), { fullName, grade, email: cred.user.email, createdAt: new Date(), isApproved: false }); } catch (e) { setNotification({ message: getFriendlyError(e), type: 'error' }); } finally { setLoading(false); }};
+            const AuthInput = ({ id, type, placeholder, value, onChange }) => (<input id={id} name={id} type={type} value={value} onChange={onChange} required placeholder={placeholder} className="mt-1 block w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-md text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500" />);
+            const LoginForm = ({ onSubmit, onForgotPassword }) => { const [e, setE] = useState(''); const [p, setP] = useState(''); return (<form onSubmit={(ev) => { ev.preventDefault(); onSubmit(e, p); }} className="space-y-6"><AuthInput id="email" type="email" placeholder="E-posta" value={e} onChange={ev => setE(ev.target.value)} /><AuthInput id="password" type="password" placeholder="Şifre" value={p} onChange={ev => setP(ev.target.value)} /><div className="text-right"><button type="button" onClick={onForgotPassword} className="text-sm font-medium text-slate-400 hover:text-slate-200">Şifreni mi unuttun?</button></div><button type="submit" className="w-full flex justify-center py-3 px-4 rounded-md shadow-lg font-medium text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 transition transform hover:scale-105">Giriş Yap</button></form>); };
+            const SignupForm = ({ onSubmit }) => { const [e, setE] = useState(''); const [p, setP] = useState(''); const [cp, setCp] = useState(''); const [fn, setFn] = useState(''); const [gr, setGr] = useState(''); const [pErr, setPErr] = useState(""); return (<form onSubmit={(ev) => { ev.preventDefault(); if (p !== cp) { setPErr('Şifreler uyuşmuyor.'); return; } onSubmit(e, p, fn, gr); }} className="space-y-4"><AuthInput id="fullName" type="text" placeholder="Ad Soyad" value={fn} onChange={ev => setFn(ev.target.value)} /><AuthInput id="grade" type="text" placeholder="Sınıf (Örn: 11-A)" value={gr} onChange={ev => setGr(ev.target.value)} /><AuthInput id="email" type="email" placeholder="E-posta" value={e} onChange={ev => setE(ev.target.value)} /><AuthInput id="password" type="password" placeholder="Şifre" value={p} onChange={ev => setP(ev.target.value)} /><AuthInput id="confirmPassword" type="password" placeholder="Şifre Tekrar" value={cp} onChange={ev => setCp(ev.target.value)} /><AlertDisplay message={pErr} type="error" /><button type="submit" className="w-full flex justify-center py-3 px-4 rounded-md shadow-lg font-medium text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 transition transform hover:scale-105">Hesap Oluştur</button></form>); };
+            return (<div className="w-full max-w-md mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl p-8">{loading && <FullScreenLoader />}{showForgotPasswordModal && (<Modal title="Şifre Yardımı" onClose={() => setShowForgotPasswordModal(false)}><p>Yeni şifre için lütfen Berkant Hoca ile iletişime geçiniz.</p></Modal>)}<div className="text-center mb-8"><div className="flex justify-center mb-4"><div className="w-32 p-1 bg-white/10 rounded-lg shadow-lg"><img src="https://i.imgur.com/GtXn6lU.jpeg" alt="Logo" className="rounded-md" /></div></div><h1 className="text-3xl font-extrabold text-slate-100">{isLoginView ? 'Giriş Yap' : 'Hesap Oluştur'}</h1><p className="text-slate-400 mt-2">Soru Çözücü evrenine hoş geldiniz!</p></div><AlertDisplay message={notification.message} type={notification.type} />{isLoginView ? <LoginForm onSubmit={handleLogin} onForgotPassword={() => setShowForgotPasswordModal(true)} /> : <SignupForm onSubmit={handleSignup} />}<div className="mt-6 text-center"><button onClick={() => { setIsLoginView(!isLoginView); setNotification({ message: "", type: "error" }); }} className="text-sm font-medium text-slate-300 hover:text-white">{isLoginView ? 'Hesabınız yok mu? Kayıt Olun' : 'Zaten hesabınız var mı? Giriş Yapın'}</button></div></div>);
+        };
+
+        const AwaitingApproval = ({ onLogout }) => (<div className="w-full max-w-md mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl p-8 text-center"><h1 className="text-3xl font-extrabold text-slate-100">Onay Bekleniyor</h1><p className="text-slate-300 mt-4">Hesabınız oluşturuldu. Yönetici onayı sonrası uygulamayı kullanabilirsiniz.</p><p className="text-slate-400 mt-2 text-sm">Lütfen daha sonra tekrar deneyin.</p><button onClick={onLogout} className="w-full mt-8 flex justify-center py-3 px-4 rounded-md shadow-lg font-medium text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 transition transform hover:scale-105">Çıkış Yap</button></div>);
+
+        const App = () => {
+            const [authState, setAuthState] = useState({ status: 'loading', user: null });
+            useEffect(() => { if (!auth) { setAuthState({ status: 'loggedOut', user: null }); return; } const unsub = onAuthStateChanged(auth, async (user) => { if (user) { try { const userDoc = await getDoc(doc(db, "users", user.uid)); if (userDoc.exists() && userDoc.data().isApproved) { setAuthState({ status: 'approved', user }); } else { setAuthState({ status: 'unapproved', user }); } } catch (e) { setAuthState({ status: 'loggedOut', user: null }); } } else { setAuthState({ status: 'loggedOut', user: null }); } }); return () => unsub(); }, []);
+            const handleLogout = async () => { try { await signOut(auth); } catch (e) { console.error("Çıkış hatası:", e); }};
+            const renderContent = () => { switch (authState.status) { case 'loading': return <FullScreenLoader />; case 'approved': return <SoruCozucuPage onLogout={handleLogout} />; case 'unapproved': return <AwaitingApproval onLogout={handleLogout} />; default: return <AuthPage />; }};
+            const bgClass = authState.status === 'approved' ? 'bg-slate-900' : 'animated-gradient';
+            return (<div className={`min-h-screen w-full flex items-center justify-center p-4 transition-all duration-500 ${bgClass}`}>{authState.status !== 'approved' && <AnimatedBubbles />}<div className="relative z-10 w-full">{renderContent()}</div></div>);
+        };
+
+        const container = document.getElementById('root');
+        const root = createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
